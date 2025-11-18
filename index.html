@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McMichael's Equipment - Inventory Management</title>
+    <style>
+        :root {
+            --primary: #EF4123;
+            --background: #F8F6F2;
+            --text: #333333;
+            --light-gray: #e0e0e0;
+            --medium-gray: #cccccc;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo h1 {
+            color: var(--primary);
+            font-size: 24px;
+            margin-left: 10px;
+        }
+        
+        .contact-info {
+            text-align: right;
+        }
+        
+        .contact-info p {
+            margin-bottom: 5px;
+        }
+        
+        .hero {
+            background-color: var(--primary);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .hero h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .hero p {
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .category-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            max-width: 70%;
+        }
+        
+        .category-btn {
+            background-color: var(--white);
+            border: 1px solid var(--medium-gray);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .category-btn:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .category-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: var(--white);
+            border-radius: 4px;
+            padding: 5px 10px;
+            border: 1px solid var(--medium-gray);
+        }
+        
+        .search-box input {
+            border: none;
+            outline: none;
+            padding: 5px;
+            width: 200px;
+        }
+        
+        .inventory-table {
+            background-color: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background-color: rgba(239, 65, 35, 0.05);
+        }
+        
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .btn-add {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .btn-edit {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .btn-delete {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .btn-view {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .btn-export {
+            background-color: #FF9800;
+            color: white;
+            padding: 8px 15px;
+            margin-left: 10px;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .close-modal {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn-save {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .product-detail {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .product-detail-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .product-detail-info {
+            flex: 1;
+        }
+        
+        .product-detail-info h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .specs-list {
+            list-style-type: none;
+            margin-top: 10px;
+        }
+        
+        .specs-list li {
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--light-gray);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1001;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .storage-status {
+            background-color: #e7f3ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top: 1px solid var(--light-gray);
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .category-filter {
+                max-width: 100%;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .search-box input {
+                width: 100%;
+            }
+            
+            .product-detail {
+                flex-direction: column;
+            }
+            
+            .product-detail-image {
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">Product saved successfully!</div>
+    
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i>🚜</i>
+                    <h1>McMichael's Equipment</h1>
+                </div>
+                <div class="contact-info">
+                    <p>📞 540-349-2800</p>
+                    <p>📍 4232 Lee Highway</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="storage-status" id="storage-status">
+            💾 Data stored in browser - Export to backup
+        </div>
+        
+        <div class="hero">
+            <h2>Equipment Inventory Management</h2>
+            <p>Manage your tractor and equipment inventory</p>
+        </div>
+        
+        <button class="btn btn-add" id="add-product-btn">
+            ➕ Add New Product
+        </button>
+        <button class="btn btn-export" onclick="exportData()">
+            📥 Export Backup
+        </button>
+        
+        <div class="controls">
+            <div class="category-filter">
+                <button class="category-btn active" data-category="all">All Products</button>
+                <button class="category-btn" data-category="Kioti Tractors">Kioti Tractors</button>
+                <button class="category-btn" data-category="Scag Mowers">Scag Mowers</button>
+                <button class="category-btn" data-category="Cub Cadet Mowers">Cub Cadet</button>
+                <button class="category-btn" data-category="Hisun UTVs">Hisun UTVs</button>
+                <button class="category-btn" data-category="ICON Golf Carts">ICON Carts</button>
+                <button class="category-btn" data-category="Aluma Trailers">Aluma Trailers</button>
+                <button class="category-btn" data-category="Nolan Trailers">Nolan Trailers</button>
+                <button class="category-btn" data-category="Hawke Dump Trailers">Hawke Trailers</button>
+                <button class="category-btn" data-category="Ironcraft Implements">Ironcraft</button>
+                <button class="category-btn" data-category="Snow Blowers">Snow Blowers</button>
+                <button class="category-btn" data-category="Misc">Misc</button>
+                <button class="category-btn" data-category="Other">Other</button>
+            </div>
+            
+            <div class="search-box">
+                🔍
+                <input type="text" id="search-input" placeholder="Search products...">
+            </div>
+        </div>
+        
+        <div class="inventory-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product ID</th>
+                        <th>Category</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Availability</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-body">
+                    <tr>
+                        <td colspan="7" style="text-align: center;">Loading inventory data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <footer>
+            <p>© 2023 McMichael's Equipment. All rights reserved.</p>
+        </footer>
+    </div>
+    
+    <!-- Add Product Modal -->
+    <div class="modal" id="add-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Product</h2>
+                <span class="close-modal">×</span>
+            </div>
+            <form id="add-form">
+                <div class="form-group">
+                    <label for="add-product-id">Product ID *</label>
+                    <input type="text" id="add-product-id" required>
+                </div>
+                <div class="form-group">
+                    <label for="add-category">Category *</label>
+                    <select id="add-category" required>
+                        <option value="">Select Category</option>
+                        <option value="Kioti Tractors">Kioti Tractors</option>
+                        <option value="Scag Mowers">Scag Mowers</option>
+                        <option value="Cub Cadet Mowers">Cub Cadet Mowers</option>
+                        <option value="Hisun UTVs">Hisun UTVs</option>
+                        <option value="ICON Golf Carts">ICON Golf Carts</option>
+                        <option value="Aluma Trailers">Aluma Trailers</option>
+                        <option value="Nolan Trailers">Nolan Trailers</option>
+                        <option value="Hawke Dump Trailers">Hawke Dump Trailers</option>
+                        <option value="Ironcraft Implements">Ironcraft Implements</option>
+                        <option value="Snow Blowers">Snow Blowers</option>
+                        <option value="Misc">Misc</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="add-name">Product Name *</label>
+                    <input type="text" id="add-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="add-image">Image URL</label>
+                    <input type="text" id="add-image" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="add-description">Description</label>
+                    <textarea id="add-description" placeholder="Product description..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="add-price">Price *</label>
+                    <input type="number" id="add-price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="add-specs">Specifications</label>
+                    <textarea id="add-specs" placeholder="Engine: 45 HP, Transmission: Hydrostatic..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="add-availability">Availability *</label>
+                    <select id="add-availability" required>
+                        <option value="">Select Availability</option>
+                        <option value="In Stock">In Stock</option>
+                        <option value="Out of Stock">Out of Stock</option>
+                        <option value="Coming Soon">Coming Soon</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-save">Add Product</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit Product Modal -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Product</h2>
+                <span class="close-modal">×</span>
+            </div>
+            <form id="edit-form">
+                <div class="form-group">
+                    <label for="edit-product-id">Product ID</label>
+                    <input type="text" id="edit-product-id" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="edit-category">Category</label>
+                    <select id="edit-category" required>
+                        <option value="Kioti Tractors">Kioti Tractors</option>
+                        <option value="Scag Mowers">Scag Mowers</option>
+                        <option value="Cub Cadet Mowers">Cub Cadet Mowers</option>
+                        <option value="Hisun UTVs">Hisun UTVs</option>
+                        <option value="ICON Golf Carts">ICON Golf Carts</option>
+                        <option value="Aluma Trailers">Aluma Trailers</option>
+                        <option value="Nolan Trailers">Nolan Trailers</option>
+                        <option value="Hawke Dump Trailers">Hawke Dump Trailers</option>
+                        <option value="Ironcraft Implements">Ironcraft Implements</option>
+                        <option value="Snow Blowers">Snow Blowers</option>
+                        <option value="Misc">Misc</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-name">Name</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-image">Image URL</label>
+                    <input type="text" id="edit-image">
+                </div>
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-price">Price</label>
+                    <input type="number" id="edit-price" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="edit-specs">Specifications</label>
+                    <textarea id="edit-specs"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-availability">Availability</label>
+                    <select id="edit-availability">
+                        <option value="In Stock">In Stock</option>
+                        <option value="Out of Stock">Out of Stock</option>
+                        <option value="Coming Soon">Coming Soon</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-save">Save Changes</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- View Product Modal -->
+    <div class="modal" id="view-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Product Details</h2>
+                <span class="close-modal">×</span>
+            </div>
+            <div id="product-detail-content">
+                <!-- Product details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple localStorage-based inventory system
+        const STORAGE_KEY = 'mcmichael_inventory';
+        
+        // Sample data
+        const sampleData = [
+            {
+                productId: "KIOTI-NX4510",
+                category: "Kioti Tractors",
+                name: "NX4510 ROPS",
+                image: "https://images.unsplash.com/photo-1622396481328-9b1b78cdd9fd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                description: "45 HP utility tractor with ROPS protection",
+                price: 28999,
+                specs: "Engine: 45 HP, Transmission: Hydrostatic, Drive: 4WD, Lift Capacity: 2600 lbs",
+                availability: "In Stock"
+            },
+            {
+                productId: "KIOTI-CK2620",
+                category: "Kioti Tractors",
+                name: "CK2620 HST",
+                image: "https://images.unsplash.com/photo-1573588028698-f4759befb09a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                description: "26 HP compact tractor",
+                price: 18999,
+                specs: "Engine: 26 HP, Transmission: Hydrostatic, Loader Capacity: 1100 lbs",
+                availability: "In Stock"
+            }
+        ];
+
+        // Data management
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(inventoryData));
+            updateStorageStatus();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            return saved ? JSON.parse(saved) : sampleData;
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(inventoryData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mcmichael_inventory_backup.json';
+            a.click();
+            showNotification('Data exported successfully!');
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+
+        function updateStorageStatus() {
+            const status = document.getElementById('storage-status');
+            status.textContent = `💾 ${inventoryData.length} products stored in browser - Export to backup`;
+        }
+
+        // Load inventory data
+        let inventoryData = loadData();
+
+        // DOM elements
+        const inventoryBody = document.getElementById('inventory-body');
+        const categoryButtons = document.querySelectorAll('.category-btn');
+        const searchInput = document.getElementById('search-input');
+        const addModal = document.getElementById('add-modal');
+        const editModal = document.getElementById('edit-modal');
+        const viewModal = document.getElementById('view-modal');
+        const addForm = document.getElementById('add-form');
+        const editForm = document.getElementById('edit-form');
+        const productDetailContent = document.getElementById('product-detail-content');
+        const closeButtons = document.querySelectorAll('.close-modal');
+        const addProductBtn = document.getElementById('add-product-btn');
+
+        // Current filter state
+        let currentCategory = 'all';
+        let currentSearch = '';
+
+        // Initialize the app
+        function init() {
+            renderInventory();
+            setupEventListeners();
+            updateStorageStatus();
+        }
+
+        // Render inventory table
+        function renderInventory() {
+            inventoryBody.innerHTML = '';
+            
+            const filteredData = inventoryData.filter(item => {
+                const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
+                const matchesSearch = item.name.toLowerCase().includes(currentSearch.toLowerCase()) || 
+                                     item.productId.toLowerCase().includes(currentSearch.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+            
+            if (filteredData.length === 0) {
+                inventoryBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No products found</td></tr>';
+                return;
+            }
+            
+            filteredData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><img src="${item.image}" alt="${item.name}" class="product-image"></td>
+                    <td>${item.productId}</td>
+                    <td>${item.category}</td>
+                    <td>${item.name}</td>
+                    <td>$${item.price.toLocaleString()}</td>
+                    <td>${item.availability}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-view" data-id="${item.productId}">View</button>
+                        <button class="btn btn-edit" data-id="${item.productId}">Edit</button>
+                        <button class="btn btn-delete" data-id="${item.productId}">Delete</button>
+                    </td>
+                `;
+                inventoryBody.appendChild(row);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            addProductBtn.addEventListener('click', () => {
+                addForm.reset();
+                addModal.style.display = 'flex';
+            });
+            
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    categoryButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    currentCategory = button.getAttribute('data-category');
+                    renderInventory();
+                });
+            });
+            
+            searchInput.addEventListener('input', () => {
+                currentSearch = searchInput.value;
+                renderInventory();
+            });
+            
+            inventoryBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-view')) {
+                    const productId = e.target.getAttribute('data-id');
+                    viewProduct(productId);
+                } else if (e.target.classList.contains('btn-edit')) {
+                    const productId = e.target.getAttribute('data-id');
+                    editProduct(productId);
+                } else if (e.target.classList.contains('btn-delete')) {
+                    const productId = e.target.getAttribute('data-id');
+                    deleteProduct(productId);
+                }
+            });
+            
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    addModal.style.display = 'none';
+                    editModal.style.display = 'none';
+                    viewModal.style.display = 'none';
+                });
+            });
+            
+            addForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                addNewProduct();
+            });
+            
+            editForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveProduct();
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (e.target === addModal) addModal.style.display = 'none';
+                if (e.target === editModal) editModal.style.display = 'none';
+                if (e.target === viewModal) viewModal.style.display = 'none';
+            });
+        }
+
+        // Add new product
+        function addNewProduct() {
+            const productId = document.getElementById('add-product-id').value;
+            
+            if (inventoryData.find(item => item.productId === productId)) {
+                alert('Product ID already exists. Please use a unique Product ID.');
+                return;
+            }
+            
+            const newProduct = {
+                productId: productId,
+                category: document.getElementById('add-category').value,
+                name: document.getElementById('add-name').value,
+                image: document.getElementById('add-image').value || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80',
+                description: document.getElementById('add-description').value,
+                price: parseFloat(document.getElementById('add-price').value),
+                specs: document.getElementById('add-specs').value,
+                availability: document.getElementById('add-availability').value
+            };
+            
+            inventoryData.push(newProduct);
+            saveData();
+            renderInventory();
+            addModal.style.display = 'none';
+            showNotification('Product added successfully!');
+        }
+
+        // View product details
+        function viewProduct(productId) {
+            const product = inventoryData.find(item => item.productId === productId);
+            if (!product) return;
+            
+            productDetailContent.innerHTML = `
+                <div class="product-detail">
+                    <img src="${product.image}" alt="${product.name}" class="product-detail-image">
+                    <div class="product-detail-info">
+                        <h3>${product.name}</h3>
+                        <p><strong>Product ID:</strong> ${product.productId}</p>
+                        <p><strong>Category:</strong> ${product.category}</p>
+                        <p><strong>Price:</strong> $${product.price.toLocaleString()}</p>
+                        <p><strong>Availability:</strong> ${product.availability}</p>
+                        <p><strong>Description:</strong> ${product.description}</p>
+                        <h4>Specifications:</h4>
+                        <ul class="specs-list">
+                            ${product.specs.split(',').map(spec => `<li>${spec.trim()}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            viewModal.style.display = 'flex';
+        }
+
+        // Edit product
+        function editProduct(productId) {
+            const product = inventoryData.find(item => item.productId === productId);
+            if (!product) return;
+            
+            document.getElementById('edit-product-id').value = product.productId;
+            document.getElementById('edit-category').value = product.category;
+            document.getElementById('edit-name').value = product.name;
+            document.getElementById('edit-image').value = product.image;
+            document.getElementById('edit-description').value = product.description;
+            document.getElementById('edit-price').value = product.price;
+            document.getElementById('edit-specs').value = product.specs;
+            document.getElementById('edit-availability').value = product.availability;
+            
+            editModal.style.display = 'flex';
+        }
+
+        // Save product changes
+        function saveProduct() {
+            const productId = document.getElementById('edit-product-id').value;
+            const index = inventoryData.findIndex(item => item.productId === productId);
+            
+            if (index !== -1) {
+                inventoryData[index] = {
+                    productId: productId,
+                    category: document.getElementById('edit-category').value,
+                    name: document.getElementById('edit-name').value,
+                    image: document.getElementById('edit-image').value,
+                    description: document.getElementById('edit-description').value,
+                    price: parseFloat(document.getElementById('edit-price').value),
+                    specs: document.getElementById('edit-specs').value,
+                    availability: document.getElementById('edit-availability').value
+                };
+                
+                saveData();
+                renderInventory();
+                editModal.style.display = 'none';
+                showNotification('Product updated successfully!');
+            }
+        }
+
+        // Delete product
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                const index = inventoryData.findIndex(item => item.productId === productId);
+                if (index !== -1) {
+                    inventoryData.splice(index, 1);
+                    saveData();
+                    renderInventory();
+                    showNotification('Product deleted successfully!');
+                }
+            }
+        }
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
